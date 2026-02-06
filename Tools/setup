@@ -87,7 +87,7 @@ function update {
         oldver=$($install_dir/$app --version)
         cd ${BASEDIR}
         oldver=$(echo "v$oldver")
-        if [ $($oldver) -ge $($ver) ]; then
+        if [[ "$oldver" > "$ver" || "$oldver" == "$ver" ]]; then
             log "Version is up to date, $ver => $oldver ."
             whiptail --title "$application_name" --msgbox "Version is up to date, $ver => $oldver ." 8 78
             exit
