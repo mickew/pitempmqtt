@@ -37,18 +37,6 @@ if [ ! $? = 0 ]; then
    exit 1
 fi
 
-# check os architecture
-ARCH=$(getconf LONG_BIT)
-if [ $ARCH -eq 64 ]; then
-    log "64-bit architecture detected."
-elif [ $ARCH -eq 32 ]; then
-    log "32-bit architecture detected."
-else
-    whiptail --title "$application_name" --msgbox "Unsupported architecture: $ARCH-bit." 8 78
-    log "Unsupported architecture: $ARCH-bit." 1>&2
-    exit 1
-fi
-
 # help functions
 function install {
     echo "Installing..."
@@ -162,6 +150,18 @@ function log {
         echo $1
     fi
 }
+
+# check os architecture
+ARCH=$(getconf LONG_BIT)
+if [ $ARCH -eq 64 ]; then
+    log "64-bit architecture detected."
+elif [ $ARCH -eq 32 ]; then
+    log "32-bit architecture detected."
+else
+    whiptail --title "$application_name" --msgbox "Unsupported architecture: $ARCH-bit." 8 78
+    log "Unsupported architecture: $ARCH-bit." 1>&2
+    exit 1
+fi
 
 # main loop and logic
 while [ 1 ]
