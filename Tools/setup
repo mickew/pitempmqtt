@@ -133,9 +133,9 @@ function getlatest {
     mkdir -p $install_dir
     echo "Copying files..."
     if [ $ARCH -eq 64 ]; then
-        cp -a ./$out/$app_dir/$app_dir/. $install_dir
+        cp -a ./$out/$app_dir/. $install_dir
     else
-        cp -a ./$out/$app_dir/$app_dir$ARCH/. $install_dir
+        cp -a ./$out/$app_dir$ARCH/. $install_dir
     fi
     if [[ $service != "" ]]; then
         curl -O $serviceurl
