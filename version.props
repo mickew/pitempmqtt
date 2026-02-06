@@ -5,6 +5,6 @@
     <!--Increment VersionMinor for new features, but backwards compatible and set VersionPatch to 0.-->
     <VersionMinor>0</VersionMinor>
     <!--Increment VersionPatch for backwards compatible bug fixes only.-->
-    <VersionPatch>1</VersionPatch>
+    <VersionPatch>2</VersionPatch>
   </PropertyGroup>
 </Project>
