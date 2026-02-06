@@ -25,9 +25,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Run Publish 64-bit
-      run: dotnet publish ./pitempmqtt/pitempmqtt.csproj -c Release -o ./dotnet-app/pitempmqtt --runtime linux-arm64 --self-contained true
+      run: dotnet publish ./pitempmqtt/Pitempmqtt.csproj -c Release -o ./dotnet-app/pitempmqtt --runtime linux-arm64 --self-contained true
     - name: Run Publish 32-bit
-      run: dotnet publish ./pitempmqtt/pitempmqtt.csproj -c Release -o ./dotnet-app/pitempmqtt32 --runtime linux-arm --self-contained true
+      run: dotnet publish ./pitempmqtt/Pitempmqtt.csproj -c Release -o ./dotnet-app/pitempmqtt32 --runtime linux-arm --self-contained true
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
