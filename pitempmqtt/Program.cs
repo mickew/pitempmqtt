@@ -19,6 +19,13 @@ if (printVersion)
     Console.WriteLine(GetVersion());
     return;
 }
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(GetConfiguration(args))
+    .Enrich.FromLogContext()
+    .WriteTo.Console(outputTemplate: SerilogOutputTemplate)
+    .CreateBootstrapLogger();
+
 HostApplicationBuilderSettings settings = new()
 {
     Args = args,
@@ -28,6 +35,8 @@ HostApplicationBuilderSettings settings = new()
 };
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(settings);
+
+Log.ForContext<Program>().Information("Starting Pitempmqtt {Version}", GetVersion());
 
 builder.Services.AddOptions<MqttSettings>()
     .BindConfiguration(MqttSettings.Section)
@@ -43,6 +52,7 @@ builder.Services.AddSerilog((services, configuration) =>
         .WriteTo.Console(outputTemplate: SerilogOutputTemplate)
 ;
 });
+
 
 builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
 builder.Services.AddSingleton<IHostedService>(serviceProvider => serviceProvider.GetService<IMqttClientService>()!);
@@ -88,4 +98,16 @@ static string GetVersion()
     }
     var version = $"{currentAssembly.GetName().Version!.Major}.{currentAssembly.GetName().Version!.Minor}.{currentAssembly.GetName().Version!.Build}";
     return version ?? "?.?.?";
+}
+
+static IConfiguration GetConfiguration(string[] args)
+{
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true, reloadOnChange: true)
+        .AddEnvironmentVariables()
+        .AddCommandLine(args)
+        .Build();
+    return configuration;
 }
