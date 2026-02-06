@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+
+####### Variables
+BASEDIR=${PWD}
+application_name="PiTemp MQTT Client"
+app_dir="pitempmqtt"
+install_dir="/usr/local/bin/$app_dir"
+app="PitempMqtt"
+
+service="pitempmqtt.service"
+serviceurl="https://raw.githubusercontent.com/mickew/pitempmqtt/main/Tools/$service"
+
+latesturl="https://github.com/mickew/pitempmqtt/releases/latest"
+rooturl="https://github.com/mickew/pitempmqtt/releases/download"
+filename="release.zip"
+out="latest"
+
+#Check parameters
+if [ $# -gt 0 ]; then
+    if [[ $1 == -v ]]; then
+        VERBOSE=1
+    else
+        VERBOSE=0
+    fi
+else
+    VERBOSE=0
+fi
+
+#Check if script is being run as root
+if [ "$(id -u)" != "0" ]; then
+   whiptail --title "$application_name" --msgbox "This script must be run as root." 8 78
+   log "This script must be run as root" 1>&2
+   exit 1
+fi
+
+if [ ! $? = 0 ]; then
+   exit 1
+fi
+
+# check os architecture
+ARCH=$(getconf LONG_BIT)
+if [ $ARCH -eq 64 ]; then
+    log "64-bit architecture detected."
+elif [ $ARCH -eq 32 ]; then
+    log "32-bit architecture detected."
+else
+    whiptail --title "$application_name" --msgbox "Unsupported architecture: $ARCH-bit." 8 78
+    log "Unsupported architecture: $ARCH-bit." 1>&2
+    exit 1
+fi
+
+# help functions
+function install {
+    echo "Installing..."
+    if checkifinstalled; then
+        if [ ! -f /usr/local/bin/$app_dir/appsettings.Production.json ]; then
+            SERVERKEY="$(whiptail --inputbox "Enter youre MQTT Server address!" --title "MQTT Server" 8 78 "" 3>&1 1>&2 2>&3)"
+        fi
+        if [ -n "$SERVERKEY" ]; then
+            getlatest
+            sudo sh -c "echo '{ \"MQTT\": {\"Server\": \"$SERVERKEY\" } }' >> /usr/local/bin/$app_dir/appsettings.Production.json"
+            chmod +x $install_dir/$app
+            if [[ $service != "" ]]; then
+                systemctl enable $service
+                systemctl start $service
+            fi
+            whiptail --title "Installation complete" --msgbox "$application_name installation complete." 8 78
+        else
+            whiptail --title "$application_name" --msgbox "No MQTT Server address entered, can't install." 8 78
+        fi
+
+        exit
+    else
+        whiptail --title "$application_name" --msgbox "$application_name is already installed, please choose another option." 8 78
+    fi
+}
+
+function update {
+    echo "Updating..."
+    if checkifinstalled; then
+        whiptail --title "$application_name" --msgbox "$application_name is not installed, select install instead." 8 78
+    else
+        location=$(curl -s -I $latesturl | grep -i ^Location: | cut -d: -f2- | sed 's/^ *\(.*\).*/\1/')
+        ver="${location##*/}"
+        ver=$(echo "$ver" | sed 's/.\{1\}$//')
+        cd $install_dir
+        oldver=$($install_dir/$app --version)
+        cd ${BASEDIR}
+        oldver=$(echo "v$oldver")
+        if [ $(version $oldver) -ge $(version $ver) ]; then
+            log "Version is up to date, $ver => $oldver ."
+            whiptail --title "$application_name" --msgbox "Version is up to date, $ver => $oldver ." 8 78
+            exit
+        fi
+        systemctl stop $service
+        getlatest
+        chmod +x $install_dir/$app
+        systemctl start $service
+        whiptail --title "Update complete" --msgbox "$application_name update complete." 8 78
+        exit
+    fi
+}
+
+function remove {
+    echo "Removing..."
+    if checkifinstalled; then
+        whiptail --title "$application_name" --msgbox "$application_name is not installed, nothing to remove." 8 78
+        exit
+    else
+        if [[ $service != "" ]]; then
+            systemctl stop $service
+            systemctl disable $service
+            rm /etc/systemd/system/$service
+        fi
+        rm -f -r $install_dir
+        whiptail --title "Uninstall complete" --msgbox "$application_name uninstall complete." 8 78
+        exit
+    fi
+}
+
+function getlatest {
+    log "Getting latest..."
+    rm -f $filename
+    rm -f -r $out
+    location=$(curl -s -I $latesturl | grep -i ^Location: | cut -d: -f2- | sed 's/^ *\(.*\).*/\1/')
+    version="${location##*/}"
+    ver=$(echo "$version" | sed 's/.\{1\}$//')
+    url="${rooturl}/${ver}/${filename}"
+    echo "Downloading files..."
+    curl -L -O $url
+    echo "Unzipping downloaded files..."
+    unzip -a -q -d $out/ $filename
+    mkdir -p $install_dir
+    echo "Copying files..."
+    if [ $ARCH -eq 64 ]; then
+        cp -a ./$out/$app_dir/$app_dir/. $install_dir
+    else
+        cp -a ./$out/$app_dir/$app_dir$ARCH/. $install_dir
+    fi
+    if [[ $service != "" ]]; then
+        curl -O $serviceurl
+        cp $service /etc/systemd/system
+    fi
+    echo "Cleaning up..."
+    rm -f $service
+    rm -f $filename
+    rm -f -r $out
+}
+
+function checkifinstalled {
+    log "Checking if $application_name is installed..."
+    if ! [ -f $install_dir/$app ]; then
+        log "File $install_dir/$app does not exist."
+        return 0
+    else
+        return 1
+    fi
+}
+
+function log {
+    if [ $VERBOSE -eq 1 ]; then
+        echo $1
+    fi
+}
+
+# main loop and logic
+while [ 1 ]
+do
+    CHOICE=$(
+    whiptail --title "$application_name - setup" --cancel-button "Exit" --menu "Choose an option" 12 78 4 \
+        "1)" "Install $application_name on system." \
+        "2)" "Update $application_name on system." \
+        "3)" "Remove $application_name from the system."  3>&2 2>&1 1>&3	
+    )
+    case $CHOICE in
+        "") exit
+            ;;
+        "1)")   
+            log "User selected Install."
+            install
+        ;;
+        "2)")   
+            log "User selected Update."
+            update
+        ;;
+
+        "3)")   
+            log "User selected Uninstall."
+            if whiptail --title "$application_name - Uninstall" --yesno "Do you realy want to uninstall" 8 78; then
+                log "User selected Yes."
+                remove
+            else
+                log "User selected No."
+            fi
+            ;;
+    esac
+done

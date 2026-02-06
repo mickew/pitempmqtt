@@ -1,0 +1,61 @@
+
+name: Deploy
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      environment_tag:
+        description: 'Enter Tag'     
+        required: true
+        default: 'v0.0.0'
+
+jobs:
+  build-project:
+    name: Publish Project
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Checkout and Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Run Publish 64-bit
+      run: dotnet publish ./pitempmqtt/pitempmqtt.csproj -c Release -o ./dotnet-app/pitempmqtt --runtime linux-arm64 --self-contained true
+    - name: Run Publish 32-bit
+      run: dotnet publish ./pitempmqtt/pitempmqtt.csproj -c Release -o ./dotnet-app/pitempmqtt32 --runtime linux-arm --self-contained true
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: application-artifacts
+        path: dotnet-app/
+
+  release-project:
+    name: Release Project
+    runs-on: ubuntu-latest
+    needs: build-project
+    permissions:
+      contents: write
+    steps:
+    - name: Download content
+      uses: actions/download-artifact@v4
+      with:
+        name: application-artifacts
+    - name: Archive site content
+      uses: thedoctor0/zip-release@0.7.6
+      with:
+        type: 'zip'
+        filename: release.zip
+    - name: Upload Release
+      uses: ncipollo/release-action@v1.15.0
+      with:
+        artifacts: "release.zip"
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit: ${{ github.sha }}
+        tag: "${{ github.event.inputs.environment_tag }}"
+        name: "Release of RPI Display ${{ github.event.inputs.environment_tag }}"
+        generateReleaseNotes: true

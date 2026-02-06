@@ -1,0 +1,10 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!--Increment VersionMajor for breaking changes and set VersionMinor and VersionPatch to 0.-->
+    <VersionMajor>0</VersionMajor>
+    <!--Increment VersionMinor for new features, but backwards compatible and set VersionPatch to 0.-->
+    <VersionMinor>0</VersionMinor>
+    <!--Increment VersionPatch for backwards compatible bug fixes only.-->
+    <VersionPatch>1</VersionPatch>
+  </PropertyGroup>
+</Project>

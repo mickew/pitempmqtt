@@ -1,0 +1,14 @@
+[Unit]
+Description=MQTT Temprature Client systemd demon
+
+[Service]
+WorkingDirectory=/usr/local/bin/pitempmqtt
+ExecStart=/usr/local/bin/pitempmqtt/Pitempmqtt
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=pitempmqtt
+Environment=NETCORE_ENVIRONMENT=Production
+
+[Install]
+WantedBy=multi-user.target

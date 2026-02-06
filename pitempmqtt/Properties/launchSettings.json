@@ -1,0 +1,17 @@
+{
+  "profiles": {
+    "pitempmqtt": {
+      "commandName": "Project",
+      //"commandLineArgs": "--version",
+      "environmentVariables": {
+        "NETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "environmentVariables": {
+        "NETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

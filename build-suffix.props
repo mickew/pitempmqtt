@@ -1,0 +1,10 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!--VersionSuffix value is assigned by Team City before build.
+    Prerelease must start with -
+    I.g. For release: .55
+    I.g. For prerelease: -beta.56
+    I.g. For prerelease from feature branch: -Move-binaries-to-component.57-->
+    <VersionSuffix>.0</VersionSuffix>
+  </PropertyGroup>
+</Project>
