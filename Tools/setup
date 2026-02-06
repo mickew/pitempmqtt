@@ -5,7 +5,7 @@ BASEDIR=${PWD}
 application_name="PiTemp MQTT Client"
 app_dir="pitempmqtt"
 install_dir="/usr/local/bin/$app_dir"
-app="PitempMqtt"
+app="Pitempmqtt"
 
 service="pitempmqtt.service"
 serviceurl="https://raw.githubusercontent.com/mickew/pitempmqtt/main/Tools/$service"
