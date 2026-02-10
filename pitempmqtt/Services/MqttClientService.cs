@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Globalization;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MQTTnet;
@@ -29,7 +30,8 @@ internal class MqttClientService : IMqttClientService
 
     public async Task<bool> PublishTemeratureAsync(double temperature)
     {
-        var payload = $"{temperature:F2}";
+        //var payload = $"{temperature:F2}";
+        var payload = temperature.ToString("F2", CultureInfo.InvariantCulture);
 
         var result = await _mqttClient.PublishAsync(new MqttApplicationMessageBuilder()
             .WithTopic($"{_mqttSettings.Value.Topic}/{_mqttSettings.Value.ClientId}/status/temerature")
