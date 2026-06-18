@@ -57,5 +57,5 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit: ${{ github.sha }}
         tag: "${{ github.event.inputs.environment_tag }}"
-        name: "Release of RPI Display ${{ github.event.inputs.environment_tag }}"
+        name: "Release of MQTT Temprature Client ${{ github.event.inputs.environment_tag }}"
         generateReleaseNotes: true
